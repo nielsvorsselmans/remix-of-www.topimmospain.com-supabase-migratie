@@ -1,0 +1,1 @@
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS rewrite_status text NOT NULL DEFAULT 'idle';

@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trigger_aggregate_on_tracking_events ON public.tracking_events;

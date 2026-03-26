@@ -1,0 +1,1 @@
+ALTER TABLE public.reviews ADD COLUMN IF NOT EXISTS story_versions jsonb DEFAULT '[]'::jsonb;

@@ -1,0 +1,3 @@
+ALTER TABLE public.sales 
+ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;

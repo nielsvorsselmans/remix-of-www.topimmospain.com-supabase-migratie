@@ -1,0 +1,1 @@
+ALTER TABLE public.blog_posts ADD COLUMN source_question_id UUID REFERENCES public.content_questions(id) ON DELETE SET NULL;

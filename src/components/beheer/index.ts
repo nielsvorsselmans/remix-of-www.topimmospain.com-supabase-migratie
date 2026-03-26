@@ -1,0 +1,1 @@
+export { BeheerDashboardContent } from "./BeheerDashboardContent";

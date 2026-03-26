@@ -1,0 +1,1 @@
+ALTER VIEW public_sales SET (security_invoker = on);

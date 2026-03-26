@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 40 30% 97%;
+    --foreground: 25 25% 25%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 25% 25%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 25% 25%;
+
+    --primary: 200 60% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 45% 88%;
+    --secondary-foreground: 25 25% 25%;
+
+    --muted: 35 30% 92%;
+    --muted-foreground: 25 15% 50%;
+
+    --accent: 190 50% 65%;
+    --accent-foreground: 25 25% 25%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 35 20% 88%;
+    --input: 35 20% 88%;
+    --ring: 200 60% 45%;
+
+    --radius: 0.75rem;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(200 60% 45%), hsl(190 55% 55%));
+    --gradient-warm: linear-gradient(135deg, hsl(35 65% 75%), hsl(25 60% 85%));
+    --gradient-subtle: linear-gradient(180deg, hsl(40 30% 97%), hsl(35 30% 92%));
+    --shadow-elegant: 0 10px 30px -10px hsl(200 60% 45% / 0.2);
+    --shadow-soft: 0 4px 20px -4px hsl(25 25% 25% / 0.1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 25 30% 12%;
+    --foreground: 40 30% 95%;
+
+    --card: 25 25% 15%;
+    --card-foreground: 40 30% 95%;
+
+    --popover: 25 25% 15%;
+    --popover-foreground: 40 30% 95%;
+
+    --primary: 200 65% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 25 20% 22%;
+    --secondary-foreground: 40 30% 95%;
+
+    --muted: 25 20% 20%;
+    --muted-foreground: 40 15% 65%;
+
+    --accent: 190 55% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 25 20% 25%;
+    --input: 25 20% 25%;
+    --ring: 200 65% 50%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(200 65% 50%), hsl(190 60% 55%));
+    --gradient-warm: linear-gradient(135deg, hsl(35 70% 65%), hsl(25 65% 75%));
+    --gradient-subtle: linear-gradient(180deg, hsl(25 30% 12%), hsl(25 25% 15%));
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.4);
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
+    
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* React Quill Editor Styles */
+.ql-container {
+  font-family: inherit;
+  font-size: 1rem;
+  min-height: 200px;
+}
+
+.ql-editor {
+  min-height: 200px;
+  padding: 1rem;
+}
+
+.ql-toolbar {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
+}
+
+.ql-container {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-color: hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+.ql-editor.ql-blank::before {
+  color: hsl(var(--muted-foreground));
+}
+
+@layer utilities {
+  /* Underline animation for story links */
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+
+  /* Hover scale animation */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  /* Pulse animation */
+  .pulse {
+    @apply animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite];
+  }
+
+  /* Blog Content Styling */
+  .prose-blog {
+    @apply text-foreground;
+  }
+
+  .prose-blog .heading-section {
+    @apply mb-6 mt-10 first:mt-0;
+  }
+
+  .prose-blog .blog-heading {
+    @apply text-2xl md:text-3xl font-bold text-foreground border-l-4 border-primary pl-4 py-2 bg-muted/20 rounded-r;
+  }
+
+  .prose-blog .paragraph-section {
+    @apply my-6;
+  }
+
+  .prose-blog .paragraph-section p {
+    @apply text-lg leading-relaxed text-muted-foreground;
+  }
+
+  .prose-blog .first-paragraph {
+    @apply text-xl leading-relaxed;
+  }
+
+  .prose-blog .first-paragraph::first-letter {
+    @apply text-5xl font-bold text-primary float-left mr-2 mt-1 leading-none;
+  }
+
+  .prose-blog .list-section {
+    @apply my-8;
+  }
+
+  .prose-blog .styled-list {
+    @apply space-y-4;
+  }
+
+  .prose-blog .list-item {
+    @apply flex items-start gap-3 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors;
+  }
+
+  .prose-blog .list-icon {
+    @apply w-5 h-5 text-primary flex-shrink-0 mt-0.5;
+  }
+
+  .prose-blog .list-item span {
+    @apply text-base text-muted-foreground leading-relaxed;
+  }
+}
+
+/* Safe area support for mobile (iPhone notch/home indicator) */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

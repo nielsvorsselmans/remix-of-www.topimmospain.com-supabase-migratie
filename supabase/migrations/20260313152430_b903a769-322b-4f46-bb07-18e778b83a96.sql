@@ -1,0 +1,1 @@
+ALTER TABLE public.reviews ADD COLUMN IF NOT EXISTS quote_emotional TEXT, ADD COLUMN IF NOT EXISTS quote_concrete TEXT;

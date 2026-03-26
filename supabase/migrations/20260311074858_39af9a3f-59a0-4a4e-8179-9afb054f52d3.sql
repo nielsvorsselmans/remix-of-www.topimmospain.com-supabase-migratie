@@ -1,0 +1,1 @@
+ALTER TABLE public.viewing_companion_notes ADD COLUMN IF NOT EXISTS cost_indication jsonb DEFAULT NULL;

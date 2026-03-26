@@ -1,0 +1,1 @@
+ALTER TABLE public.lead_nurture_actions ADD COLUMN resource_url text, ADD COLUMN resource_type text;

@@ -1,0 +1,1 @@
+UPDATE public.partners SET ghl_tags = ARRAY['arthur brekelmans'] WHERE id = '9cc6463b-ed37-4b55-b5f2-441891b826b2';

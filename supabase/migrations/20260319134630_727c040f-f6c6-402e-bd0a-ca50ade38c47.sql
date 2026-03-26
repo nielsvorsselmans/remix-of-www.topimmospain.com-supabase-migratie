@@ -1,0 +1,1 @@
+ALTER TABLE public.ghl_contact_appointments ADD COLUMN ghl_notes TEXT;
