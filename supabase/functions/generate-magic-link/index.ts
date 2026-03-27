@@ -90,7 +90,7 @@ serve(async (req) => {
       );
     }
 
-    const redirectUrl = redirect_to || `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/dashboard`;
+    const redirectUrl = redirect_to || `${Deno.env.get('PRODUCTION_SITE_URL') || 'https://www.topimmospain.com'}/dashboard`;
     console.log(`[MagicLink] Generating for ${email}, redirect: ${redirectUrl}`);
 
     // =========================================================================

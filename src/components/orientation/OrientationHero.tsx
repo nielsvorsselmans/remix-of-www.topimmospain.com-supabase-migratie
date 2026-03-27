@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Download, Users } from "lucide-react";
+import { ArrowRight, Sparkles, Download, Users, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { downloadFile } from "@/utils/downloadFile";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface OrientationHeroProps {
   firstName?: string;
@@ -14,8 +16,6 @@ interface OrientationHeroProps {
   hasStarted: boolean;
   investmentGoal?: string;
 }
-
-const ORIENTATION_PDF_URL = "https://owbzpreqoxedpmlsgdkb.supabase.co/storage/v1/object/public/documents/orientation-guide.pdf";
 
 // Personalized intro based on investment goal
 const getPersonalizedIntro = (goal?: string): string | null => {
@@ -41,10 +41,37 @@ export function OrientationHero({
   hasStarted,
   investmentGoal,
 }: OrientationHeroProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
   const personalizedIntro = getPersonalizedIntro(investmentGoal);
-  
-  const handleDownloadPdf = () => {
-    downloadFile(ORIENTATION_PDF_URL, { filename: "Viva-Vastgoed-Orientatiegids.pdf" });
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-orientation-pdf', {
+        method: 'POST',
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.htmlBase64) {
+        const htmlContent = decodeURIComponent(escape(atob(data.htmlBase64)));
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(htmlContent);
+          printWindow.document.close();
+          toast.success('Gids geopend! Gebruik Ctrl+P om als PDF op te slaan.');
+        }
+      } else {
+        throw new Error('Geen content ontvangen');
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error('Er ging iets mis bij het downloaden. Probeer het later opnieuw.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -52,7 +79,7 @@ export function OrientationHero({
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-accent/10 to-transparent rounded-full blur-2xl translate-y-1/4 -translate-x-1/4" />
-      
+
       {/* Content */}
       <div className="relative z-10 p-6 md:p-8 lg:p-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -64,7 +91,7 @@ export function OrientationHero({
               </div>
               <span className="text-sm font-medium text-primary">Oriëntatiegids</span>
             </div>
-            
+
             <div>
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
                 {firstName ? (
@@ -74,7 +101,7 @@ export function OrientationHero({
                 )}
               </h1>
               <p className="text-muted-foreground mt-2 text-base md:text-lg max-w-xl">
-                {hasStarted 
+                {hasStarted
                   ? `Je bent goed op weg! Nog ${totalCount - completedCount} artikelen te gaan.`
                   : personalizedIntro || "Ontdek alles wat je moet weten over investeren in Spaans vastgoed."
                 }
@@ -109,8 +136,8 @@ export function OrientationHero({
 
           {/* Right side - CTA buttons */}
           <div className="flex flex-col sm:flex-row md:flex-col gap-3 flex-shrink-0">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               onClick={onStartReading}
               className="group h-12 px-6 text-base shadow-lg hover:shadow-xl transition-all"
             >
@@ -121,10 +148,20 @@ export function OrientationHero({
               variant="outline"
               size="lg"
               onClick={handleDownloadPdf}
+              disabled={isDownloading}
               className="h-12 px-6 text-base gap-2"
             >
-              <Download className="h-5 w-5" />
-              Download PDF
+              {isDownloading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Bezig met genereren...
+                </>
+              ) : (
+                <>
+                  <Download className="h-5 w-5" />
+                  Download PDF
+                </>
+              )}
             </Button>
           </div>
         </div>

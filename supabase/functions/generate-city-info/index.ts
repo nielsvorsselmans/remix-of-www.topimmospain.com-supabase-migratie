@@ -206,39 +206,6 @@ Schrijf in Nederlandse taal, vriendelijk en adviserend.`;
       console.log(`Cached city info for ${city}, ${country}`);
     }
 
-    // Send to external API in background (don't block response)
-    const sendToExternalAPI = async () => {
-      try {
-        console.log(`Sending city info to external API for: ${city}`);
-        const externalResponse = await fetch(
-          'https://xeiyoaocyyjrnsxbxyev.supabase.co/functions/v1/api-cities-generate',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              city,
-              country,
-              description: updateData.description
-            })
-          }
-        );
-
-        if (!externalResponse.ok) {
-          const errorText = await externalResponse.text();
-          console.error(`External API error (${externalResponse.status}):`, errorText);
-        } else {
-          console.log(`Successfully sent city info to external API for: ${city}`);
-        }
-      } catch (error) {
-        console.error('Error sending to external API:', error);
-      }
-    };
-
-    // Fire and forget - don't await
-    sendToExternalAPI();
-
     return new Response(
       JSON.stringify({ 
         ...(upsertedData || updateData),
