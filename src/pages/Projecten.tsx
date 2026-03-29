@@ -221,9 +221,23 @@ const Projecten = () => {
   // Track previous map projects for stable display during loading
   const [previousMapProjects, setPreviousMapProjects] = useState<any[]>([]);
 
-  // Derive map projects from aggregated data — no separate edge function call
+  // Fetch all map projects via mapOnly=true (all pages, not just current grid page)
   const { projects: mapProjects, loading: mapLoading } = useMapProjects({
-    aggregatedData: aggregatedData,
+    search: debouncedSearchQuery || undefined,
+    cities: selectedCities.length > 0 ? selectedCities : undefined,
+    regions: selectedRegions.length > 0 ? selectedRegions : undefined,
+    propertyTypes: mappedPropertyTypes,
+    minPrice: debouncedMinPrice ? parseFloat(debouncedMinPrice) : null,
+    maxPrice: debouncedMaxPrice ? parseFloat(debouncedMaxPrice) : null,
+    minBedrooms: selectedBedrooms.length > 0 ? Math.min(...selectedBedrooms.map(b => b === '4+' ? 4 : parseInt(b))) : null,
+    maxBedrooms: selectedBedrooms.length > 0 ? Math.max(...selectedBedrooms.map(b => b === '4+' ? 10 : parseInt(b))) : null,
+    minBathrooms: selectedBathrooms.length > 0 ? Math.min(...selectedBathrooms.map(b => b === '3+' ? 3 : parseFloat(b))) : null,
+    maxBathrooms: selectedBathrooms.length > 0 ? Math.max(...selectedBathrooms.map(b => b === '3+' ? 10 : parseFloat(b))) : null,
+    maxDistance: selectedDistances.length > 0 && selectedDistances.some(d => d !== 'more') ? (selectedDistances.includes('more') ? null : Math.max(...selectedDistances.filter(d => d !== 'more').map(d => parseInt(d)))) : null,
+    minDistance: selectedDistances.length === 1 && selectedDistances[0] === 'more' ? 5000 : null,
+    availability,
+    hasPool: hasPool || undefined,
+    hasSeaViews: hasSeaViews || undefined,
   });
 
   const projects = aggregatedData?.data || [];

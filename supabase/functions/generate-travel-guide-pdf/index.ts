@@ -7,7 +7,7 @@ const corsHeaders = {
 
 // Configuration - centralized for easy maintenance
 const PDF_VERSION = 'v11-html2pdf';
-const LOGO_URL = 'https://topimmo.lovable.app/logo-email.png';
+const LOGO_URL = `${Deno.env.get('PRODUCTION_SITE_URL') || 'https://www.topimmospain.com'}/logo-email.png`;
 const COMPANY_WEBSITE = 'www.topimmospain.com';
 const COMPANY_EMAIL = 'info@topimmospain.com';
 const COMPANY_PHONE = '+34 868 08 15 27';
@@ -1316,7 +1316,7 @@ function generateHTML(guide: Guide): string {
         <!-- FASE 3: Teamfoto met fallback naar signature block -->
         <div class="team-photo-container">
           <img 
-            src="https://topimmo.lovable.app/lovable-uploads/8ff5b591-1b66-439a-8f4f-879be0808f3a.jpg" 
+            src="${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/team-photos/8ff5b591-1b66-439a-8f4f-879be0808f3a.jpg"
             alt="Het Top Immo Spain Team"
             class="team-photo"
             onerror="this.parentElement.innerHTML='<div class=\\'signature-block\\'><div class=\\'signature-name\\'>Lars & Niels</div><div class=\\'signature-title\\'>Oprichters Top Immo Spain</div></div>'"

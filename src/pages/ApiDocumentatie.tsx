@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Code2, ExternalLink, Filter, Database } from "lucide-react";
 
 const ApiDocumentatie = () => {
-  const apiBaseUrl = "https://owbzpreqoxedpmlsgdkb.supabase.co/functions/v1";
+  const apiBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
   
   return (
     <div className="min-h-screen flex flex-col">

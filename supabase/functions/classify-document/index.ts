@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callAnthropic, MODEL_HAIKU } from '../_shared/ai-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -188,18 +189,6 @@ async function checkLearnedPatterns(
 
 // Use AI to classify document
 async function classifyWithAI(fileName: string, title?: string): Promise<ClassificationResult> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  
-  if (!LOVABLE_API_KEY) {
-    console.log('[classify-document] No LOVABLE_API_KEY, returning default');
-    return {
-      type: 'other',
-      confidence: 0.1,
-      source: 'ai',
-      suggestLearn: false,
-    };
-  }
-
   const prompt = `Classificeer dit document op basis van de bestandsnaam en/of titel.
 
 Bestandsnaam: "${fileName}"
@@ -228,39 +217,12 @@ Antwoord ALLEEN met geldige JSON, geen andere tekst:
 {"type": "...", "confidence": 0.9}`;
 
   try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'Je bent een document classificatie expert. Antwoord alleen met geldige JSON.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.1,
-      }),
-    });
+    const content = await callAnthropic(
+      'Je bent een document classificatie expert. Antwoord alleen met geldige JSON.',
+      prompt,
+      { model: MODEL_HAIKU, temperature: 0.1 }
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[classify-document] AI API error:', response.status, errorText);
-      return {
-        type: 'other',
-        confidence: 0.1,
-        source: 'ai',
-        suggestLearn: false,
-      };
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-    
     console.log('[classify-document] AI response:', content);
 
     // Parse JSON from response (handle markdown code blocks)

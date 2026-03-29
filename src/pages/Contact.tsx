@@ -470,7 +470,7 @@ export default function Contact() {
               <CardContent className="pt-6">
                 <div className="flex flex-col md:flex-row gap-6 items-start">
                   <Avatar className="w-20 h-20 border-2 border-primary/20 flex-shrink-0">
-                    <AvatarImage src="https://owbzpreqoxedpmlsgdkb.supabase.co/storage/v1/object/public/review-images/reviews/1764110330821-customer.jpg" alt="Jordi & Sharona" />
+                    <AvatarImage src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/review-images/reviews/1764110330821-customer.jpg`} alt="Jordi & Sharona" />
                     <AvatarFallback>JS</AvatarFallback>
                   </Avatar>
                   

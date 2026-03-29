@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { callAnthropicWithTool, MODEL_SONNET } from "../_shared/ai-client.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,7 +14,7 @@ serve(async (req) => {
 
   try {
     const { projectId } = await req.json();
-    
+
     if (!projectId) {
       throw new Error("Missing projectId");
     }
@@ -69,7 +70,7 @@ serve(async (req) => {
     const minPrice = Math.min(...properties.map((p: any) => Number(p.price)));
     const maxPrice = Math.max(...properties.map((p: any) => Number(p.price)));
     const totalUnits = properties.length;
-    
+
     const bedroomRange = {
       min: Math.min(...properties.map((p: any) => p.bedrooms)),
       max: Math.max(...properties.map((p: any) => p.bedrooms))
@@ -91,13 +92,7 @@ serve(async (req) => {
       .slice(0, 3)
       .map((p: any) => p.description);
 
-    // Generate description using Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
-    const prompt = `Schrijf een professionele en aantrekkelijke beschrijving voor een vastgoedproject in ${city}, Spanje. 
+    const prompt = `Schrijf een professionele en aantrekkelijke beschrijving voor een vastgoedproject in ${city}, Spanje.
 
 Details van het project:
 - Locatie: ${city}, Spanje
@@ -119,69 +114,62 @@ Schrijf de beschrijving in het Nederlands, tussen 150-250 woorden. Focus op:
 
 Maak de beschrijving warm, adviserend en menselijk - niet pusherig of verkoperig.
 
-Geef ook 5 korte highlights (max 6 woorden elk) die de belangrijkste voordelen benadrukken.
+Geef ook 5 korte highlights (max 6 woorden elk) die de belangrijkste voordelen benadrukken.`;
 
-Formatteer je antwoord als JSON:
-{
-  "description": "De volledige beschrijving hier",
-  "highlights": ["Highlight 1", "Highlight 2", "Highlight 3", "Highlight 4", "Highlight 5"]
-}`;
-
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'Je bent een professionele vastgoedcopywriter gespecialiseerd in Spaanse vastgoedprojecten. Je schrijft altijd warm, adviserend en menselijk - nooit pusherig. Je helpt mensen begrijpen hoe investeren in Spanje werkt.'
-          },
-          {
-            role: 'user',
-            content: prompt
+    // Generate description using Anthropic API
+    let parsed: { description: string; highlights: string[] };
+    try {
+      parsed = await callAnthropicWithTool<{ description: string; highlights: string[] }>(
+        'Je bent een professionele vastgoedcopywriter gespecialiseerd in Spaanse vastgoedprojecten. Je schrijft altijd warm, adviserend en menselijk - nooit pusherig. Je helpt mensen begrijpen hoe investeren in Spanje werkt.',
+        prompt,
+        {
+          name: 'set_project_description',
+          description: 'Sla de gegenereerde projectbeschrijving en highlights op',
+          input_schema: {
+            type: 'object',
+            properties: {
+              description: {
+                type: 'string',
+                description: 'De volledige projectbeschrijving in het Nederlands (150-250 woorden)'
+              },
+              highlights: {
+                type: 'array',
+                items: { type: 'string' },
+                description: '5 korte highlights (max 6 woorden elk)'
+              }
+            },
+            required: ['description', 'highlights']
           }
-        ],
-        response_format: { type: "json_object" }
-      }),
-    });
+        },
+        { model: MODEL_SONNET, maxTokens: 1024 }
+      );
+    } catch (aiError) {
+      console.error('AI API Error:', aiError);
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI API Error:', aiResponse.status, errorText);
-      
       // Fallback: use best property description
       console.log("AI failed, using property description as fallback");
       const bestProperty = properties
         .filter((p: any) => p.description && p.description.length > 50)
         .sort((a: any, b: any) => (b.description?.length || 0) - (a.description?.length || 0))[0];
-      
+
       if (bestProperty?.description) {
         const fallbackDescription = bestProperty.description;
-        
-        // Save fallback to local database
+
         await supabase
           .from('projects')
           .update({ description: fallbackDescription })
           .eq('id', projectId);
-        
+
         console.log("Saved fallback description to local database");
-        
+
         return new Response(
           JSON.stringify({ description: fallbackDescription, highlights: [] }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
-      throw new Error(`AI API error: ${aiResponse.status}`);
-    }
 
-    const aiData = await aiResponse.json();
-    const content = aiData.choices[0].message.content;
-    const parsed = JSON.parse(content);
+      throw aiError;
+    }
 
     console.log("Generated description for project:", projectId);
 
@@ -192,13 +180,13 @@ Formatteer je antwoord als JSON:
       .eq('id', projectId)
       .single();
 
-    if (recheckProject?.description && 
+    if (recheckProject?.description &&
         !recheckProject.description.includes('Automatisch gegenereerd') &&
         recheckProject.description.length > 100) {
       console.log("Description was generated by another request, using that");
       return new Response(
-        JSON.stringify({ 
-          description: recheckProject.description, 
+        JSON.stringify({
+          description: recheckProject.description,
           highlights: project.highlights || []
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -232,10 +220,10 @@ Formatteer je antwoord als JSON:
   } catch (error) {
     console.error('Error in generate-project-description:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error instanceof Error ? error.message : 'Unknown error'
       }),
-      { 
+      {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }

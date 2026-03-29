@@ -6,7 +6,6 @@ const isPreviewEnvironment = (): boolean => {
   const hostname = window.location.hostname;
   return (
     hostname === 'localhost' ||
-    hostname.includes('lovable.app') ||
     hostname.includes('127.0.0.1')
   );
 };

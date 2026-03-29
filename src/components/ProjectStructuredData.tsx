@@ -25,8 +25,8 @@ export function ProjectStructuredData({ project, propertyTypes, faqItems }: Proj
   const description = project.description?.substring(0, 300) || `${title} - Nieuwbouw vastgoed in ${project.city}, ${project.country || "Spanje"}`;
   
   const canonicalUrl = project.slug
-    ? `https://topimmo.lovable.app/nieuwbouw-spanje/${project.slug}`
-    : `https://topimmo.lovable.app/project/${project.id}`;
+    ? `https://www.topimmospain.com/nieuwbouw-spanje/${project.slug}`
+    : `https://www.topimmospain.com/project/${project.id}`;
 
   // RealEstateListing structured data
   const realEstateSchema = {

@@ -1454,7 +1454,7 @@ export function LinkedInTestBench() {
                         setScheduleSuccess(true);
                         return;
                       }
-                      const blogLink = `https://topimmo.lovable.app/blog/${selectedPost.slug}?utm_source=facebook&utm_medium=social&utm_campaign=${selectedPost.slug}`;
+                      const blogLink = `https://www.topimmospain.com/blog/${selectedPost.slug}?utm_source=facebook&utm_medium=social&utm_campaign=${selectedPost.slug}`;
                       const fbContent = `${activeVariant.editedContent}\n\n👉 Lees het volledige artikel: ${blogLink}`;
                       const { data: fbResult, error: fbError } = await supabase.functions.invoke("schedule-ghl-post", {
                         body: {
