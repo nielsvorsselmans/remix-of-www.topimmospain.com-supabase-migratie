@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { callAnthropic, MODEL_HAIKU } from '../_shared/ai-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,47 +11,20 @@ async function translateNotesToSpanish(notes: string[]): Promise<Record<string, 
   const uniqueNotes = [...new Set(notes.filter(Boolean))];
   if (uniqueNotes.length === 0) return {};
 
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  if (!LOVABLE_API_KEY) {
-    console.warn("[snagging-pdf] No LOVABLE_API_KEY, skipping translations");
-    return {};
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-  try {
-    const prompt = `Vertaal de volgende Nederlandse zinnen naar het Spaans. 
+  const prompt = `Vertaal de volgende Nederlandse zinnen naar het Spaans.
 Geef ALLEEN een JSON array terug met exact evenveel elementen als de input, in dezelfde volgorde.
 Geen uitleg, geen extra tekst, alleen de JSON array met Spaanse vertalingen.
 
 Input:
 ${JSON.stringify(uniqueNotes)}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          { role: "system", content: "Je bent een vertaler NL→ES. Antwoord ALLEEN met een JSON array van vertalingen." },
-          { role: "user", content: prompt }
-        ],
-      }),
-    });
+  try {
+    const content = await callAnthropic(
+      "Je bent een vertaler NL→ES. Antwoord ALLEEN met een JSON array van vertalingen.",
+      prompt,
+      { model: MODEL_HAIKU }
+    );
 
-    if (!response.ok) {
-      console.error("[snagging-pdf] AI translation error:", response.status);
-      return {};
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-    
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       console.error("[snagging-pdf] Could not parse translation response:", content);
@@ -62,18 +36,12 @@ ${JSON.stringify(uniqueNotes)}`;
     uniqueNotes.forEach((note, i) => {
       if (translations[i]) map[note] = translations[i];
     });
-    
+
     console.log(`[snagging-pdf] Translated ${Object.keys(map).length} notes to Spanish`);
     return map;
   } catch (err: unknown) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      console.warn('[snagging-pdf] Translation timeout - using original texts');
-    } else {
-      console.error("[snagging-pdf] Translation error:", err);
-    }
+    console.error("[snagging-pdf] Translation error:", err);
     return {};
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

@@ -1,12 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const EXTERNAL_API_URL = 'https://xeiyoaocyyjrnsxbxyev.supabase.co/functions/v1/api-partners';
-const VIVA_API_KEY = Deno.env.get('VIVA_VASTGOED_API_KEY');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -14,50 +12,48 @@ serve(async (req) => {
   }
 
   try {
-    if (!VIVA_API_KEY) {
-      throw new Error('VIVA_VASTGOED_API_KEY is not configured');
-    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
 
     const url = new URL(req.url);
-    const queryParams = new URLSearchParams();
-    
-    // Forward all query parameters to external API
-    url.searchParams.forEach((value, key) => {
-      queryParams.append(key, value);
-    });
+    const category = url.searchParams.get('category');
+    const activeOnly = url.searchParams.get('active') !== 'false';
 
-    // Build external API URL with query parameters
-    const externalUrl = `${EXTERNAL_API_URL}?${queryParams.toString()}`;
-    
-    console.log('Fetching partners from external API:', externalUrl);
+    let query = supabase
+      .from('partners')
+      .select('*')
+      .order('order_index', { ascending: true });
 
-    const response = await fetch(externalUrl, {
-      headers: {
-        'x-api-key': VIVA_API_KEY,
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`External API returned ${response.status}`);
+    if (activeOnly) {
+      query = query.eq('active', true);
     }
 
-    const data = await response.json();
+    if (category) {
+      query = query.eq('category', category);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
 
     return new Response(
       JSON.stringify(data),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   } catch (error) {
     console.error('Error fetching partners:', error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

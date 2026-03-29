@@ -34,7 +34,7 @@ export function SendMagicLinkButton({
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const PRODUCTION_URL = "https://topimmo.lovable.app";
+  const PRODUCTION_URL = "https://www.topimmospain.com";
 
   const generateAndTrack = async (sendEmail: boolean) => {
     if (!email) {

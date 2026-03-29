@@ -208,7 +208,7 @@ function toThumbnailUrl(url: string, width = 240, quality = 60): string {
 }
 
 // Configuration constants for easy maintenance
-const LOGO_URL = 'https://topimmo.lovable.app/logo-email.png';
+const LOGO_URL = `${Deno.env.get('PRODUCTION_SITE_URL') || 'https://www.topimmospain.com'}/logo-email.png`;
 const COMPANY_WEBSITE = 'www.topimmospain.com';
 const COMPANY_EMAIL = 'info@topimmospain.com';
 const TRANSLATION_MODEL = 'google/gemini-3-flash-preview';

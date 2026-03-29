@@ -30,10 +30,8 @@ function isPreviewEnvironment(): boolean {
   const hostname = window.location.hostname;
   const previewDomains = [
     'lovableproject.com',
-    'lovable.dev', 
     'localhost',
     '127.0.0.1',
-    'preview.lovable.app'
   ];
   
   return previewDomains.some(domain => hostname.includes(domain));

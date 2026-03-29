@@ -7,8 +7,6 @@ declare const EdgeRuntime: {
   waitUntil: (promise: Promise<unknown>) => void;
 };
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -112,6 +110,8 @@ serve(async (req) => {
   }
 
   try {
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
     const { email, first_name }: OTPEmailRequest = await req.json();
     
     if (!email) {
@@ -213,7 +213,7 @@ serve(async (req) => {
     // Return response immediately, email sends asynchronously
     EdgeRuntime.waitUntil(
       resend.emails.send({
-        from: "Top Immo Spain <portaal@topimmospain.com>",
+        from: "Top Immo Spain <portal@mail.topimmospain.com>",
         to: [emailLower],
         subject: personalizedSubject,
         html,

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.81.1';
+import { callAnthropicWithTool, MODEL_SONNET } from '../_shared/ai-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,24 +76,18 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(authHeader.replace('Bearer ', ''));
-      if (claimsError || !claimsData?.claims?.sub) {
+      const { data: userData, error: userError } = await userClient.auth.getUser();
+      if (userError || !userData?.user?.id) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       // Enforce: only allow fetching your own data
-      if (claimsData.claims.sub !== user_id) {
+      if (userData.user.id !== user_id) {
         return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
     }
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
     const supabase = createClient(supabaseUrl, supabaseKey);
     
     // 1. Fetch user preferences
@@ -346,72 +341,59 @@ ${last_user_message || 'Geen recent bericht'}
 
 Bepaal nu de volgende beste vraag of actie.`;
 
-    // 5. Call Lovable AI
-    console.log('Calling Lovable AI with completeness score:', completenessScore);
-    
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: last_user_message || 'Bepaal de volgende beste vraag op basis van de context.' }
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "determine_next_question",
-            description: "Bepaal de volgende beste vraag of actie voor de gebruiker",
-            parameters: {
-              type: "object",
-              properties: {
-                next_question: { 
-                  type: "string",
-                  description: "De vraag of boodschap om te tonen aan de gebruiker"
-                },
-                question_type: { 
-                  type: "string",
-                  enum: ["budget", "region", "opinion", "timeline", "experience", "investment_goal", "call_booking", "show_matches", "answer_question"],
-                  description: "Type vraag of actie"
-                },
-                reasoning: { 
-                  type: "string",
-                  description: "Waarom deze vraag of actie (voor debugging)"
-                },
-                should_ask: { 
-                  type: "boolean",
-                  description: "Of we een vraag moeten stellen (false = toon matches of beëindig)"
-                },
-                suggested_actions: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "Acties die de frontend moet nemen. Mogelijke waarden: ['show_matching_projects', 'enable_call_booking', 'prompt_account_creation', 'show_related_content']. Gebruik 'prompt_account_creation' voor engaged anonymous users, 'show_matching_projects' wanneer gebruiker projecten binnen hun budget wil zien."
-                },
-                options: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "VERPLICHT: Antwoord opties voor de gebruiker. Minimaal 2, maximaal 5 opties die passen bij de vraag."
-                }
-              },
-              required: ["next_question", "question_type", "reasoning", "should_ask", "options"]
-            }
-          }
-        }],
-        tool_choice: { type: "function", function: { name: "determine_next_question" } }
-      }),
-    });
+    // 5. Call Anthropic with tool use
+    console.log('Calling Anthropic AI with completeness score:', completenessScore);
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI gateway error:', aiResponse.status, errorText);
-      
-      // Return fallback question based on completeness
+    const advisorTool = {
+      name: "determine_next_question",
+      description: "Bepaal de volgende beste vraag of actie voor de gebruiker",
+      input_schema: {
+        type: "object",
+        properties: {
+          next_question: {
+            type: "string",
+            description: "De vraag of boodschap om te tonen aan de gebruiker"
+          },
+          question_type: {
+            type: "string",
+            enum: ["budget", "region", "opinion", "timeline", "experience", "investment_goal", "call_booking", "show_matches", "answer_question"],
+            description: "Type vraag of actie"
+          },
+          reasoning: {
+            type: "string",
+            description: "Waarom deze vraag of actie (voor debugging)"
+          },
+          should_ask: {
+            type: "boolean",
+            description: "Of we een vraag moeten stellen (false = toon matches of beëindig)"
+          },
+          suggested_actions: {
+            type: "array",
+            items: { type: "string" },
+            description: "Acties die de frontend moet nemen. Mogelijke waarden: ['show_matching_projects', 'enable_call_booking', 'prompt_account_creation', 'show_related_content']. Gebruik 'prompt_account_creation' voor engaged anonymous users, 'show_matching_projects' wanneer gebruiker projecten binnen hun budget wil zien."
+          },
+          options: {
+            type: "array",
+            items: { type: "string" },
+            description: "VERPLICHT: Antwoord opties voor de gebruiker. Minimaal 2, maximaal 5 opties die passen bij de vraag."
+          }
+        },
+        required: ["next_question", "question_type", "reasoning", "should_ask", "options"]
+      }
+    };
+
+    let decision;
+    try {
+      decision = await callAnthropicWithTool(
+        systemPrompt,
+        last_user_message || 'Bepaal de volgende beste vraag op basis van de context.',
+        advisorTool,
+        { model: MODEL_SONNET }
+      );
+    } catch (aiError) {
+      console.error('AI error, returning fallback:', aiError);
       const fallbackResponse = {
-        next_question: completenessScore < 40 
+        next_question: completenessScore < 40
           ? "Om je goed te kunnen helpen, wat is ongeveer je budget voor een investering in Spanje?"
           : "Heb je nog specifieke vragen over dit project?",
         question_type: completenessScore < 40 ? "budget" : "answer_question",
@@ -419,23 +401,13 @@ Bepaal nu de volgende beste vraag of actie.`;
         should_ask: true,
         suggested_actions: []
       };
-      
       return new Response(JSON.stringify(fallbackResponse), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const result = await aiResponse.json();
-    const toolCall = result.choices[0].message.tool_calls?.[0];
-    
-    if (!toolCall) {
-      throw new Error('No tool call in AI response');
-    }
-    
-    const decision = JSON.parse(toolCall.function.arguments);
-    
     console.log('AI Decision:', decision);
-    
+
     return new Response(JSON.stringify(decision), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

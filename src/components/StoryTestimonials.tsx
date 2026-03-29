@@ -14,7 +14,7 @@ export const StoryTestimonials = () => {
     queryKey: ['story-testimonials'],
     queryFn: async () => {
       const response = await fetch(
-        'https://owbzpreqoxedpmlsgdkb.supabase.co/functions/v1/api-reviews?has_full_story=false&featured=true&limit=6'
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-reviews?has_full_story=false&featured=true&limit=6`
       );
 
       if (!response.ok) throw new Error('Failed to fetch testimonials');

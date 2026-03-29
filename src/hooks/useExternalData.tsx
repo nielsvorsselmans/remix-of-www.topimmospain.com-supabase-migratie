@@ -241,7 +241,13 @@ export function useAggregatedProjects(
       if (filters?.personalized) params.append('personalized', 'true');
 
       const response = await fetch(
-        `${EXTERNAL_API_BASE}/api-projects-aggregated?${params.toString()}`
+        `${EXTERNAL_API_BASE}/api-projects-aggregated?${params.toString()}`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -262,11 +268,10 @@ export function useAggregatedProjects(
   };
 }
 
-// Hook to derive map projects from aggregated projects data (no separate edge function call)
+// Hook to fetch all map projects via mapOnly=true (no pagination, location fields only)
 export function useMapProjects(filters?: {
-  aggregatedData?: any; // Pass the aggregated data directly
+  aggregatedData?: any; // unused — kept for call-site compatibility
   enabled?: boolean;
-  // Legacy filter props kept for API compatibility but no longer used for fetching
   search?: string;
   cities?: string[];
   regions?: string[];
@@ -283,9 +288,65 @@ export function useMapProjects(filters?: {
   hasPool?: string | null;
   hasSeaViews?: boolean;
 }) {
-  // Derive map data from aggregated projects — no separate edge function call
-  const projects = filters?.aggregatedData?.data || [];
-  return { projects, loading: false, error: null as Error | null };
+  const queryKey = [
+    'map-projects',
+    filters?.search,
+    filters?.cities?.sort().join(','),
+    filters?.regions?.sort().join(','),
+    filters?.propertyTypes?.sort().join(','),
+    filters?.minPrice,
+    filters?.maxPrice,
+    filters?.minBedrooms,
+    filters?.maxBedrooms,
+    filters?.minBathrooms,
+    filters?.maxBathrooms,
+    filters?.maxDistance,
+    filters?.minDistance,
+    filters?.availability,
+    filters?.hasPool,
+    filters?.hasSeaViews,
+  ];
+
+  const { data, isLoading, error } = useQuery({
+    queryKey,
+    enabled: filters?.enabled !== false,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('mapOnly', 'true');
+      if (filters?.search) params.append('search', filters.search);
+      if (filters?.cities && filters.cities.length > 0) params.append('cities', filters.cities.join(','));
+      if (filters?.regions && filters.regions.length > 0) params.append('regions', filters.regions.join(','));
+      if (filters?.propertyTypes && filters.propertyTypes.length > 0) params.append('property_types', filters.propertyTypes.join(','));
+      if (filters?.minPrice) params.append('min_price', filters.minPrice.toString());
+      if (filters?.maxPrice) params.append('max_price', filters.maxPrice.toString());
+      if (filters?.minBedrooms) params.append('min_bedrooms', filters.minBedrooms.toString());
+      if (filters?.maxBedrooms) params.append('max_bedrooms', filters.maxBedrooms.toString());
+      if (filters?.minBathrooms) params.append('min_bathrooms', filters.minBathrooms.toString());
+      if (filters?.maxBathrooms) params.append('max_bathrooms', filters.maxBathrooms.toString());
+      if (filters?.maxDistance) params.append('max_distance', filters.maxDistance.toString());
+      if (filters?.minDistance) params.append('min_distance', filters.minDistance.toString());
+      if (filters?.availability) params.append('availability', filters.availability);
+      if (filters?.hasPool) params.append('has_pool', filters.hasPool);
+      if (filters?.hasSeaViews) params.append('has_sea_views', 'true');
+
+      const response = await fetch(
+        `${EXTERNAL_API_BASE}/api-projects-aggregated?${params.toString()}`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error(`Failed to fetch map projects: ${response.statusText}`);
+      const result = await response.json();
+      return result?.data || [];
+    },
+    staleTime: 30 * 60 * 1000,
+    placeholderData: keepPreviousData,
+  });
+
+  return { projects: data || [], loading: isLoading, error: error as Error | null };
 }
 
 // Lightweight hook for city project counts — no edge function call

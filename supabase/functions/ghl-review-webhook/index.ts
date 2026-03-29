@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret',
 };
 
 Deno.serve(async (req) => {
@@ -16,6 +16,21 @@ Deno.serve(async (req) => {
       status: 405,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  }
+
+  // ── 0. Webhook secret validation ──
+  const webhookSecret = Deno.env.get('GHL_WEBHOOK_SECRET');
+  if (webhookSecret) {
+    const headerSecret = req.headers.get('x-webhook-secret') || req.headers.get('X-Webhook-Secret');
+    if (headerSecret !== webhookSecret) {
+      console.error('[GHL Review Webhook] Invalid webhook secret');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  } else {
+    console.warn('[GHL Review Webhook] GHL_WEBHOOK_SECRET not configured — accepting all requests');
   }
 
   try {

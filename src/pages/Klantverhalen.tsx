@@ -66,7 +66,7 @@ const Klantverhalen = () => {
       if (selectedCategory !== 'all') {
         params.append('customer_type', selectedCategory);
       }
-      const response = await fetch(`https://owbzpreqoxedpmlsgdkb.supabase.co/functions/v1/api-reviews?${params.toString()}`);
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-reviews?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch reviews');
       const data = await response.json();
       const reviews = Array.isArray(data) ? data : [];
@@ -84,7 +84,7 @@ const Klantverhalen = () => {
   } = useQuery({
     queryKey: ['testimonials'],
     queryFn: async () => {
-      const response = await fetch('https://owbzpreqoxedpmlsgdkb.supabase.co/functions/v1/api-reviews?has_full_story=false&limit=6');
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-reviews?has_full_story=false&limit=6`);
       if (!response.ok) throw new Error('Failed to fetch testimonials');
       const data = await response.json();
       return Array.isArray(data) ? data : [];

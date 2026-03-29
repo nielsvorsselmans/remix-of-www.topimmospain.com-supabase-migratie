@@ -1,1 +1,37 @@
-project_id = "gifevyicousvafzgdodw"
+# TODO(P1.8): Replace with new standalone project ID after creation (P1.6)
+# Old remix project: gifevyicousvafzgdodw (do not use for standalone deployment)
+project_id = "ioamdhiqegfawittpcec"
+
+# Auth functions must be callable before a user is authenticated (no JWT)
+[functions.send-otp-email]
+verify_jwt = false
+
+[functions.verify-otp-code]
+verify_jwt = false
+
+[functions.generate-orientation-pdf]
+verify_jwt = false
+
+[functions.api-partners]
+verify_jwt = false
+
+[functions.api-projects-aggregated]
+verify_jwt = false
+
+# MAPBOX_PUBLIC_TOKEN is a public pk.* token — no auth needed for public map pages
+[functions.get-mapbox-token]
+verify_jwt = false
+
+# GHL sends its own x-webhook-secret header — cannot send a Supabase JWT
+[functions.ghl-appointment-webhook]
+verify_jwt = false
+
+[functions.ghl-review-webhook]
+verify_jwt = false
+
+# Public pages fetch reviews/properties without auth headers
+[functions.api-reviews]
+verify_jwt = false
+
+[functions.api-properties]
+verify_jwt = false

@@ -171,7 +171,7 @@ export function useDuplicateToFacebook() {
           .single();
         
         if (blogPost?.slug) {
-          const blogLink = `https://topimmo.lovable.app/blog/${blogPost.slug}?utm_source=facebook&utm_medium=social&utm_campaign=${blogPost.slug}`;
+          const blogLink = `https://www.topimmospain.com/blog/${blogPost.slug}?utm_source=facebook&utm_medium=social&utm_campaign=${blogPost.slug}`;
           fbContent = `${post.content}\n\n👉 Lees het volledige artikel: ${blogLink}`;
         } else {
           console.warn('Facebook duplication: blog_post_id exists but slug not found', post.blog_post_id);

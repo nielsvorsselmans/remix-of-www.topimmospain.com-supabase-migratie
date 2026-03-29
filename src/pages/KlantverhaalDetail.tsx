@@ -129,7 +129,7 @@ const KlantverhaalDetail = () => {
       if (slug) params.append('story_slug', slug);
 
       const response = await fetch(
-        `https://owbzpreqoxedpmlsgdkb.supabase.co/functions/v1/api-reviews?${params.toString()}`
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-reviews?${params.toString()}`
       );
       if (!response.ok) throw new Error('Failed to fetch story');
       const data = await response.json();

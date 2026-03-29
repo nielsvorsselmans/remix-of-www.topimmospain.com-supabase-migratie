@@ -46,7 +46,7 @@ serve(async (req) => {
     }
 
     // Parse request body for origin
-    let origin = 'https://lovable.dev';
+    let origin = Deno.env.get('PRODUCTION_SITE_URL') || 'https://www.topimmospain.com';
     try {
       const body = await req.json();
       if (body.origin) {

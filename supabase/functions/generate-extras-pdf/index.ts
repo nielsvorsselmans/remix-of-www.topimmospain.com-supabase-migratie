@@ -183,7 +183,7 @@ function generatePdfFilename(saleData: SaleData): string {
   // Join and sanitize for filename (remove special characters not allowed in filenames)
   return parts.join(' - ').replace(/[<>:"/\\|?*]/g, '');
 }
-const LOGO_URL = 'https://topimmo.lovable.app/logo-email.png';
+const LOGO_URL = `${Deno.env.get('PRODUCTION_SITE_URL') || 'https://www.topimmospain.com'}/logo-email.png`;
 const ITEMS_PER_PAGE = 6; // Maximum items per page for pagination
 
 // Helper function to split arrays into chunks for pagination

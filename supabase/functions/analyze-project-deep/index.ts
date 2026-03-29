@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callAnthropic, MODEL_SONNET } from '../_shared/ai-client.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -120,8 +121,8 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
   const _authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-  const { error: authError } = await _authClient.auth.getClaims(authHeader.replace('Bearer ', ''));
-  if (authError) {
+  const { data: { user }, error: authError } = await _authClient.auth.getUser(authHeader.replace('Bearer ', ''));
+  if (authError || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
@@ -374,58 +375,19 @@ Deno.serve(async (req) => {
       .single();
 
     const brainstormerPrompt = promptData?.prompt_text || DEFAULT_BRAINSTORMER_PROMPT;
-    const modelId = promptData?.model_id || "google/gemini-2.5-pro";
-    
-    console.log(`[Deep Analysis] Using model: ${modelId}`);
+    // Map any legacy Gemini model IDs to the Anthropic model; always use Sonnet for deep analysis
+    console.log(`[Deep Analysis] Using model: ${MODEL_SONNET} (DB model_id: ${promptData?.model_id ?? "default"})`);
 
     // ============================================
-    // STEP 6: Call Brainstormer AI with Dynamic Model
+    // STEP 6: Call Brainstormer AI
     // ============================================
-    console.log(`[Deep Analysis] Step 6: Calling Brainstormer (${modelId})...`);
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    console.log(`[Deep Analysis] Step 6: Calling Brainstormer...`);
 
-    const brainstormResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: modelId,
-        messages: [
-          { role: "system", content: brainstormerPrompt },
-          { 
-            role: "user", 
-            content: `Analyseer dit project grondig:\n\n${JSON.stringify(contextData, null, 2)}` 
-          }
-        ]
-      }),
-    });
-
-    if (!brainstormResponse.ok) {
-      if (brainstormResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit bereikt, probeer het later opnieuw" }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (brainstormResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits op, voeg credits toe aan je workspace" }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await brainstormResponse.text();
-      console.error("[Deep Analysis] Brainstormer error:", brainstormResponse.status, errorText);
-      throw new Error(`Brainstormer AI error: ${brainstormResponse.status}`);
-    }
-
-    const brainstormData = await brainstormResponse.json();
-    const brainstormInsights = brainstormData.choices?.[0]?.message?.content || "";
+    const brainstormInsights = await callAnthropic(
+      brainstormerPrompt,
+      `Analyseer dit project grondig:\n\n${JSON.stringify(contextData, null, 2)}`,
+      { model: MODEL_SONNET, maxTokens: 2048 }
+    );
     
     console.log("[Deep Analysis] Brainstorm complete! Length:", brainstormInsights.length);
 

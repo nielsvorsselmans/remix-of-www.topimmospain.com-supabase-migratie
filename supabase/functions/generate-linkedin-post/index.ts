@@ -207,7 +207,7 @@ async function fetchTopPerformingHooks(supabase: any, limit = 3): Promise<{ hook
 // ── BRAINSTORM STEP ──
 async function handleBrainstorm({ supabase, LOVABLE_API_KEY, customPrompt, blog_post_id, title, intro, summary, keywords, slug, debug }: any) {
   const keywordList = (keywords || []).slice(0, 5).join(", ");
-  const blogUrl = `https://topimmo.lovable.app/blog/${slug || ""}`;
+  const blogUrl = `https://www.topimmospain.com/blog/${slug || ""}`;
 
   // Fetch enrichment data in parallel
   const [enrichment, recentHooks, topPerformingHooks] = await Promise.all([
