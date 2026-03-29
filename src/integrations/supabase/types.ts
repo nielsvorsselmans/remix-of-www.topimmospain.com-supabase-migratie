@@ -241,6 +241,54 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_rooms: {
+        Row: {
+          contact_email: string
+          contact_name: string
+          created_at: string
+          ghl_appointment_id: string
+          guest_joined_at: string | null
+          host_notified_at: string | null
+          id: string
+          room_expires_at: string
+          scheduled_end: string
+          scheduled_start: string
+          updated_at: string
+          whereby_host_room_url: string
+          whereby_room_url: string
+        }
+        Insert: {
+          contact_email: string
+          contact_name: string
+          created_at?: string
+          ghl_appointment_id: string
+          guest_joined_at?: string | null
+          host_notified_at?: string | null
+          id?: string
+          room_expires_at: string
+          scheduled_end: string
+          scheduled_start: string
+          updated_at?: string
+          whereby_host_room_url: string
+          whereby_room_url: string
+        }
+        Update: {
+          contact_email?: string
+          contact_name?: string
+          created_at?: string
+          ghl_appointment_id?: string
+          guest_joined_at?: string | null
+          host_notified_at?: string | null
+          id?: string
+          room_expires_at?: string
+          scheduled_end?: string
+          scheduled_start?: string
+          updated_at?: string
+          whereby_host_room_url?: string
+          whereby_room_url?: string
+        }
+        Relationships: []
+      }
       blog_feedback: {
         Row: {
           blog_post_id: string
@@ -2791,30 +2839,6 @@ export type Database = {
           },
         ]
       }
-      favorites: {
-        Row: {
-          created_at: string
-          id: string
-          notes: string | null
-          property_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          property_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          property_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       ghl_contact_appointments: {
         Row: {
           calendar_id: string | null
@@ -3338,69 +3362,6 @@ export type Database = {
           underlying_questions?: string[] | null
           updated_at?: string | null
           validated_at?: string | null
-        }
-        Relationships: []
-      }
-      journey_checklist_items: {
-        Row: {
-          completed: boolean
-          completed_at: string | null
-          created_at: string
-          id: string
-          item_key: string
-          phase: number
-          user_id: string
-        }
-        Insert: {
-          completed?: boolean
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          item_key: string
-          phase: number
-          user_id: string
-        }
-        Update: {
-          completed?: boolean
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          item_key?: string
-          phase?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
-      journey_documents: {
-        Row: {
-          document_type: string
-          file_name: string
-          file_path: string
-          file_size: number | null
-          id: string
-          phase: number
-          uploaded_at: string
-          user_id: string
-        }
-        Insert: {
-          document_type: string
-          file_name: string
-          file_path: string
-          file_size?: number | null
-          id?: string
-          phase: number
-          uploaded_at?: string
-          user_id: string
-        }
-        Update: {
-          document_type?: string
-          file_name?: string
-          file_path?: string
-          file_size?: number | null
-          id?: string
-          phase?: number
-          uploaded_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -4171,51 +4132,6 @@ export type Database = {
           },
         ]
       }
-      orientation_requests: {
-        Row: {
-          created_at: string
-          email: string
-          first_name: string
-          id: string
-          last_name: string
-          message: string | null
-          name: string
-          phone: string
-          property_id: string | null
-          property_title: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          first_name: string
-          id?: string
-          last_name: string
-          message?: string | null
-          name: string
-          phone: string
-          property_id?: string | null
-          property_title: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          first_name?: string
-          id?: string
-          last_name?: string
-          message?: string | null
-          name?: string
-          phone?: string
-          property_id?: string | null
-          property_title?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       otp_codes: {
         Row: {
           code: string
@@ -4636,6 +4552,7 @@ export type Database = {
           bio: string
           brand_color: string | null
           category: string
+          certifications: Json | null
           company: string
           created_at: string
           description: string
@@ -4656,14 +4573,17 @@ export type Database = {
           phone: string | null
           referral_code: string | null
           role: string
+          services: Json | null
           show_on_overview: boolean | null
           slug: string | null
+          social_links: Json | null
           specializations: Json | null
           statistics: Json | null
           team_size: number | null
           testimonials: Json | null
           updated_at: string
           user_id: string | null
+          video_url: string | null
           website: string | null
           years_experience: number | null
         }
@@ -4672,6 +4592,7 @@ export type Database = {
           bio: string
           brand_color?: string | null
           category: string
+          certifications?: Json | null
           company: string
           created_at?: string
           description: string
@@ -4692,14 +4613,17 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           role: string
+          services?: Json | null
           show_on_overview?: boolean | null
           slug?: string | null
+          social_links?: Json | null
           specializations?: Json | null
           statistics?: Json | null
           team_size?: number | null
           testimonials?: Json | null
           updated_at?: string
           user_id?: string | null
+          video_url?: string | null
           website?: string | null
           years_experience?: number | null
         }
@@ -4708,6 +4632,7 @@ export type Database = {
           bio?: string
           brand_color?: string | null
           category?: string
+          certifications?: Json | null
           company?: string
           created_at?: string
           description?: string
@@ -4728,14 +4653,17 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           role?: string
+          services?: Json | null
           show_on_overview?: boolean | null
           slug?: string | null
+          social_links?: Json | null
           specializations?: Json | null
           statistics?: Json | null
           team_size?: number | null
           testimonials?: Json | null
           updated_at?: string
           user_id?: string | null
+          video_url?: string | null
           website?: string | null
           years_experience?: number | null
         }
@@ -4803,58 +4731,28 @@ export type Database = {
       }
       profiles: {
         Row: {
-          budget_max: number | null
-          budget_min: number | null
-          created_at: string | null
+          created_at: string
           email: string
           first_name: string
           id: string
-          investment_purpose: string | null
           last_name: string
-          max_distance_to_beach_m: number | null
-          phone: string | null
-          preferences_completed: boolean | null
-          preferred_bathrooms: number | null
-          preferred_bedrooms: number | null
-          preferred_cities: string[] | null
-          preferred_property_types: string[] | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          budget_max?: number | null
-          budget_min?: number | null
-          created_at?: string | null
+          created_at?: string
           email: string
           first_name: string
           id: string
-          investment_purpose?: string | null
           last_name: string
-          max_distance_to_beach_m?: number | null
-          phone?: string | null
-          preferences_completed?: boolean | null
-          preferred_bathrooms?: number | null
-          preferred_bedrooms?: number | null
-          preferred_cities?: string[] | null
-          preferred_property_types?: string[] | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          budget_max?: number | null
-          budget_min?: number | null
-          created_at?: string | null
+          created_at?: string
           email?: string
           first_name?: string
           id?: string
-          investment_purpose?: string | null
           last_name?: string
-          max_distance_to_beach_m?: number | null
-          phone?: string | null
-          preferences_completed?: boolean | null
-          preferred_bathrooms?: number | null
-          preferred_bedrooms?: number | null
-          preferred_cities?: string[] | null
-          preferred_property_types?: string[] | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -9021,48 +8919,18 @@ export type Database = {
           },
         ]
       }
-      user_journey: {
-        Row: {
-          created_at: string
-          current_phase: number
-          id: string
-          phase_started_at: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          current_phase?: number
-          id?: string
-          phase_started_at?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          current_phase?: number
-          id?: string
-          phase_started_at?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
-          created_at: string
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
-          created_at?: string
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
-          created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
@@ -10027,5 +9895,3 @@ export const Constants = {
     },
   },
 } as const
-A new version of Supabase CLI is available: v2.84.2 (currently installed v2.75.0)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
